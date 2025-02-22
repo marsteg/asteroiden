@@ -4,6 +4,8 @@ from player import *
 from asteroid import *
 from asteroidfield import *
 from shot import *
+from moon import *
+from ship import *
 import sys
 
 def main():
@@ -20,11 +22,15 @@ def main():
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
     shots = pygame.sprite.Group()
+    ships = pygame.sprite.Group()
     Asteroid.containers = (updatable, drawable, asteroids)
     Player.containers = (updatable, drawable)
     AsteroidField.containers = (updatable)
     Shot.containers = (updatable, drawable, shots)
+    Moon.containers = (updatable, drawable)
+    Ship.containers = (updatable, drawable, ships)
     asteroidfield = AsteroidField()
+    moon = Moon()
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
 
@@ -41,12 +47,23 @@ def main():
 
         # check for collisions
         for asteroid in asteroids:
-            if player.collides_with(asteroid):
+            if player.collides_with(asteroid) and asteroid.initialized: 
                 print("Game Over!")
+                print("collided with asteroid ", asteroid.id ," on position: " + str(asteroid.position))
                 sys.exit(0)
             for shot in shots:
                 if asteroid.collides_with(shot):
                     asteroid.split()
+                    shot.kill()
+        
+        for ship in ships:
+            if player.collides_with(ship) and ship.initialized:
+                print("Game Over!")
+                print("collided with ship ", ship.id ," on position: " + str(ship.position))
+                sys.exit(0)
+            for shot in shots:
+                if ship.collides_with(shot):
+                    ship.split()
                     shot.kill()
                     
 
