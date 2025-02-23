@@ -7,6 +7,8 @@ class Player(CircleShape):
         super().__init__(x, y, PLAYER_RADIUS)
         self.rotation = 0
         self.timer = 0
+        self.score = 0
+        self.lives = 3
 
     containers = []        
     
@@ -38,6 +40,8 @@ class Player(CircleShape):
         shot.velocity = forward * PLAYER_SHOOT_SPEED
         self.timer = PLAYER_SHOOT_COOLDOWN
         
+    def scoreUp(self):
+        self.score += 1
 
     def update(self, dt):
         keys = pygame.key.get_pressed()
