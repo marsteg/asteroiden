@@ -1,6 +1,7 @@
 from circleshape import *
 from constants import *
 from shot import *
+from gigashot import *
 
 class Player(CircleShape):
     def __init__(self, x, y):
@@ -8,7 +9,8 @@ class Player(CircleShape):
         self.rotation = 0
         self.timer = 0
         self.score = 0
-        self.lives = 3
+        self.lives = PLAYER_LIVES
+        self.gigammo = 10
 
     containers = []        
     
@@ -40,6 +42,17 @@ class Player(CircleShape):
         shot.velocity = forward * PLAYER_SHOOT_SPEED
         self.timer = PLAYER_SHOOT_COOLDOWN
         
+    def gigashoot(self):
+        if self.timer > 0:
+            return
+        if self.gigammo <= 0:
+            return
+        forward = pygame.Vector2(0, 1).rotate(self.rotation)
+        shot = GigaShot(self.position.x, self.position.y)
+        shot.velocity = forward * PLAYER_SHOOT_SPEED
+        self.timer = PLAYER_SHOOT_COOLDOWN
+        self.gigammo -= 1
+
     def scoreUp(self):
         self.score += 1
 
@@ -56,3 +69,5 @@ class Player(CircleShape):
             self.move(-dt)
         if keys[pygame.K_SPACE]:
             self.shoot()
+        if keys[pygame.K_g]:
+            self.gigashoot()

@@ -6,7 +6,19 @@ from asteroidfield import *
 from shot import *
 from moon import *
 from ship import *
+from ammo import *
+from door import *
 import sys
+import time
+
+def showFinalScore(score, screen):
+	color = (148, 33, 228)
+	font = pygame.font.Font('freesansbold.ttf', 50)
+	text = font.render('Score: %s' % score, True, color)
+	rect = text.get_rect()
+	rect.center = screen.get_rect().center
+	screen.blit(text, rect)
+
 
 def main():
     pygame.init()
@@ -23,15 +35,22 @@ def main():
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
     shots = pygame.sprite.Group()
+    gigashots = pygame.sprite.Group()
     ships = pygame.sprite.Group()
+    ammos = pygame.sprite.Group()
     Asteroid.containers = (updatable, drawable, asteroids)
     Player.containers = (updatable, drawable)
     AsteroidField.containers = (updatable)
     Shot.containers = (updatable, drawable, shots)
+    GigaShot.containers = (updatable, drawable, gigashots)
     Moon.containers = (updatable, drawable)
     Ship.containers = (updatable, drawable, ships)
+    Ammo.containers = (updatable, drawable, ammos)
     asteroidfield = AsteroidField()
     moon = Moon()
+    door = Door()
+    Door.containers = (drawable)
+    Moon.containers = (updatable)
     player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
     white = (255, 255, 255)
@@ -61,6 +80,13 @@ def main():
         livesTextRect.topright = (SCREEN_WIDTH, fontsize + 5)
         screen.blit(livesText, livesTextRect)
 
+        # draw the Gigammo shots
+        livesString = "Giga Ammo: " + str(player.gigammo)
+        livesText = font.render(livesString, True, blue, white)
+        livesTextRect = livesText.get_rect()
+        livesTextRect.topright = (SCREEN_WIDTH, (fontsize*2) + 5*2)
+        screen.blit(livesText, livesTextRect)
+
 
         # update all objects
         for updatable_object in updatable:
@@ -72,6 +98,7 @@ def main():
                 if player.lives > 0:
                     player.lives -= 1
                     print("Player lives: ", player.lives)
+                    print("Player Death position: ", player.position)
                     player.position = pygame.Vector2(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
                     player.velocity = pygame.Vector2(0, 0)
                     player.rotation = 0
@@ -79,12 +106,19 @@ def main():
                 print("Game Over!")
                 print("collided with asteroid ", asteroid.id ," on position: " + str(asteroid.position))
                 print("Score: ", player.score)
+                showFinalScore(player.score, screen)
                 sys.exit(0)
             for shot in shots:
                 if asteroid.collides_with(shot):
                     asteroid.split()
                     player.scoreUp()
                     shot.kill()
+            for shot in gigashots:
+                if asteroid.collides_with(shot):
+                    asteroid.split()
+                    player.scoreUp()
+                    # no shot.kill for gigashots
+
         
         for ship in ships:
             if player.collides_with(ship) and ship.initialized:
@@ -97,8 +131,20 @@ def main():
                     ship.split()
                     player.scoreUp()
                     shot.kill()
-                    
+            for shot in gigashots:
+                if ship.collides_with(shot):
+                    ship.split()
+                    player.scoreUp()
+                    # no shot.kill for gigashots
 
+        if player.collides_with(door):
+            print("entering door")
+
+        for ammo in ammos:
+            if player.collides_with(ammo):
+                print("collected ammo")
+                player.gigammo += 5
+                ammo.kill()
 
         # draw all objects
         for drawable_object in drawable:
@@ -114,10 +160,3 @@ if __name__ == "__main__":
     main()
 
 
-def showFinalScore(score, screen):
-	color = (148, 33, 228)
-	font = pygame.font.Font('freesansbold.ttf', 50)
-	text = font.render('Score: %s' % score, True, color)
-	rect = text.get_rect()
-	rect.center = screen.get_rect().center
-	screen.blit(text, rect)
